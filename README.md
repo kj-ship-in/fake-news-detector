@@ -1,3 +1,4 @@
+
 # 📰 Fake News Detector
 
 ## Overview
@@ -128,3 +129,4 @@ This project was developed as part of an Artificial Intelligence group assignmen
 ## License
 
 This project is intended for educational and academic purposes.
+
