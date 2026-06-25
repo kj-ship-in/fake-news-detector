@@ -1,6 +1,17 @@
+# Python cache
 __pycache__/
 *.pyc
+
+# Virtual environments
 .venv/
 venv/
 .env
+
+# OS files
 .DS_Store
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Trained models (during development)
+models/*.pkl
