@@ -1,17 +1,17 @@
-# Python cache
+# Python
 __pycache__/
 *.pyc
-
-# Virtual environments
-.venv/
 venv/
-.env
 
-# OS files
-.DS_Store
+# VS Code
+.vscode/
 
-# Jupyter notebooks
-.ipynb_checkpoints/
-
-# Trained models (during development)
+# Model files
 models/*.pkl
+
+# Large datasets
+data/*.csv
+data/*.zip
+
+# Environment files
+.env
