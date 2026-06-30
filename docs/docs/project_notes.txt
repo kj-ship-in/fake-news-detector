@@ -1,0 +1,6 @@
+Fake News Detector AI Project
+
+Person 1: Model training (pending)
+Person 2: Streamlit UI (completed)
+
+Next step: integrate model.pkl and vectorizer.pkl
