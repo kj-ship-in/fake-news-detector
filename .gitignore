@@ -1,6 +1,17 @@
+# Python
 __pycache__/
 *.pyc
-.venv/
 venv/
+
+# VS Code
+.vscode/
+
+# Model files
+models/*.pkl
+
+# Large datasets
+data/*.csv
+data/*.zip
+
+# Environment files
 .env
-.DS_Store
