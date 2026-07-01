@@ -8,16 +8,17 @@ from pathlib import Path
 st.set_page_config(
     page_title="Fake News Detector AI",
     page_icon="📰",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # -------------------------------
-# DARK PURPLE THEME
+# DARK + PURPLE THEME (POLISHED)
 # -------------------------------
 st.markdown("""
 <style>
 
-/* Background */
+/* App background */
 .stApp {
     background: radial-gradient(circle at top, #1a0f2e, #0b0715);
     color: white;
@@ -30,12 +31,12 @@ h1 {
     font-weight: 800;
 }
 
-/* Headers */
+/* Subheaders */
 h2, h3 {
     color: #e0b3ff;
 }
 
-/* Text Area */
+/* Text area */
 textarea {
     background-color: #1b102f !important;
     color: white !important;
@@ -45,39 +46,41 @@ textarea {
 
 /* Buttons */
 .stButton button {
-    background: linear-gradient(90deg,#7c3aed,#c084fc);
+    background: linear-gradient(90deg, #7c3aed, #c084fc);
     color: white;
     border-radius: 12px;
-    border: none;
     padding: 0.6rem 1rem;
-    font-weight: bold;
+    border: none;
+    font-weight: 600;
+    transition: 0.3s ease;
 }
 
 .stButton button:hover {
-    background: linear-gradient(90deg,#6d28d9,#a855f7);
+    transform: scale(1.03);
+    background: linear-gradient(90deg, #6d28d9, #a855f7);
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background-color:#120a22;
+    background-color: #120a22;
 }
 
-/* Result Cards */
-.result-box{
-    padding:20px;
-    border-radius:12px;
-    text-align:center;
-    margin-top:20px;
+/* Result cards */
+.result-box {
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 20px;
 }
 
-.real{
-    background:#14532d;
-    border:2px solid #22c55e;
+.real {
+    background-color: #14532d;
+    border: 1px solid #22c55e;
 }
 
-.fake{
-    background:#7f1d1d;
-    border:2px solid #ef4444;
+.fake {
+    background-color: #7f1d1d;
+    border: 1px solid #ef4444;
 }
 
 </style>
@@ -90,101 +93,107 @@ st.title("📰 Fake News Detector AI")
 st.subheader("Advanced Machine Learning News Classifier")
 
 st.markdown("""
-This AI system detects whether a news article is **REAL** or **FAKE**
-using Natural Language Processing and Machine Learning.
+This AI system detects whether a news article is **REAL** or **FAKE** using NLP and Machine Learning.
 
-Paste a news article below and click **Analyze News**.
+Paste any article below and let the AI analyze it.
 """)
 
 # -------------------------------
 # SIDEBAR
 # -------------------------------
-st.sidebar.title("📌 Project Information")
-st.sidebar.markdown("---")
-
-st.sidebar.success("Current Model: Logistic Regression + TF-IDF")
-
-st.sidebar.write("Dataset: Kaggle Fake and Real News Dataset")
+st.sidebar.title("📌 Project Info")
 
 st.sidebar.info("""
-### Technologies Used
+**Fake News Detector AI**
 
+AI-based classification system for detecting misinformation.
+
+**Tech Stack:**
 - Python
 - Streamlit
 - Scikit-learn
-- TF-IDF
-- Joblib
-- Pandas
+- NLP
+
+**Team:**
+- Model Development
+- UI & Deployment
 """)
 
 # -------------------------------
 # LOAD MODEL
 # -------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
+model_path = Path("models/model.pkl")
+vectorizer_path = Path("models/vectorizer.pkl")
 
-MODEL_PATH = BASE_DIR / "models" / "model.pkl"
-VECTORIZER_PATH = BASE_DIR / "models" / "vectorizer.pkl"
+model = None
+vectorizer = None
 
-
-@st.cache_resource
-def load_assets():
-    try:
-        model = joblib.load(MODEL_PATH)
-        vectorizer = joblib.load(VECTORIZER_PATH)
-        return model, vectorizer
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None, None
-
-
-model, vectorizer = load_assets()
-
-# Show model status AFTER loading
-if model is not None:
-    st.success("✅ AI Model Loaded Successfully")
-else:
-    st.error("❌ Model could not be loaded")
+if model_path.exists() and vectorizer_path.exists():
+    model = joblib.load(model_path)
+    vectorizer = joblib.load(vectorizer_path)
 
 # -------------------------------
-# INPUT
+# MAIN UI
 # -------------------------------
-st.markdown("## ✍️ Enter News Article")
+st.title("📰 Fake News Detector AI")
 
-news = st.text_area(
-    "News Article",
-    height=250,
-    placeholder="Paste a news article here...",
-    label_visibility="collapsed"
+st.markdown("""
+### AI-powered fake news classification system  
+Check whether a news article is real or fake using machine learning.
+""")
+
+st.markdown("---")
+
+# Session state
+if "news_text" not in st.session_state:
+    st.session_state.news_text = ""
+
+sample_text = (
+    "Breaking: Local officials announce a new community program to improve city parks and schools. "
+    "The initiative will provide grants and local support for environmental improvements."
 )
 
-# -------------------------------
-# BUTTONS
-# -------------------------------
+with st.expander("📄 Sample article"):
+    st.write(sample_text)
+    if st.button("Use sample article"):
+        st.session_state.news_text = sample_text
+        st.rerun()
+
+# Input box
+news = st.text_area(
+    "",
+    height=250,
+    placeholder="Paste a news article here..."
+)
+
+# Buttons
 col1, col2 = st.columns(2)
 
-analyze = col1.button("🔍 Analyze News")
-clear = col2.button("🧹 Clear")
+with col1:
+    analyze = st.button("🔍 Analyze News", use_container_width=True)
+
+with col2:
+    clear = st.button("🧹 Clear", use_container_width=True)
 
 if clear:
+    st.session_state.news_text = ""
     st.rerun()
 
 # -------------------------------
-# ANALYSIS
+# PREDICTION LOGIC (SAFE)
 # -------------------------------
 if analyze:
+    st.session_state.news_text = news
 
-    if news.strip() == "":
-        st.warning("Please enter a news article first.")
+    if not news.strip():
+        st.warning("Please enter a news article before analyzing.")
 
     elif model is None or vectorizer is None:
-        st.error("Model files are missing.")
+        st.info("Model not available yet. Waiting for your teammate.")
 
     else:
-
         with st.spinner("AI is analyzing the article..."):
-
             transformed = vectorizer.transform([news])
-
             prediction = model.predict(transformed)[0]
 
             confidence = None
@@ -203,20 +212,17 @@ if analyze:
         st.markdown("## 🤖 Prediction")
 
         if prediction == 1:
-
             st.markdown("""
             <div class="result-box real">
                 <h2>🟢 REAL NEWS</h2>
-                <p>The article appears to be credible.</p>
+                <p>The article appears credible based on AI analysis.</p>
             </div>
             """, unsafe_allow_html=True)
-
         else:
-
             st.markdown("""
             <div class="result-box fake">
                 <h2>🔴 FAKE NEWS</h2>
-                <p>The article appears to contain misinformation.</p>
+                <p>This article shows patterns of misinformation.</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -265,11 +271,8 @@ if analyze:
 # FOOTER
 # -------------------------------
 st.markdown("---")
-
 st.markdown("""
-<div style="text-align:center;color:#c084fc;font-size:14px;">
-
-🎓 AI Group Project • Fake News Detector • Built with Streamlit
-
+<div style='text-align:center; color:#c084fc; font-size:14px'>
+🎓 AI Group Project | Fake News Detector | Built with Streamlit
 </div>
 """, unsafe_allow_html=True)
